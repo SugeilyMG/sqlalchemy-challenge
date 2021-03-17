@@ -8,7 +8,7 @@ from sqlalchemy import create_engine, func
 from flask import Flask, jsonify
 
 # Database Setup
-engine = create_engine("sqlite:///titanic.sqlite")
+engine = create_engine("sqlite:///Resources/hawaii.sqlite")
 Base = automap_base()
 Base.prepare(engine, reflect=True)
 
@@ -59,8 +59,12 @@ def stations():
 
 @app.route("/api/v1.0/tobs")
 def tobs():
+    session = Session(engine)
+    date_filter='2016-08-22'
+    data_tobs=session.query(Measurement.date, Measurement.tobs).filter(func.strftime("%Y-%m-%d", Measurement.date) > date_filter).filter(Measurement.station=='USC00519281').all()
+    session.close()
+    tobs_list= [r[1] for r in data_tobs[:]]
+    return jsonify(tobs_list)    
 
-
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(debug=True)
