@@ -25,6 +25,7 @@ def index():
     """List all available api routes."""
     return (
         f"Available Routes:<br/>"
+        f"/api/v1.0/<br/>"
         f"/api/v1.0/precipitation<br/>"
         f"/api/v1.0/stations<br/>"
         f"/api/v1.0/tobs<br/>"
@@ -65,6 +66,27 @@ def tobs():
     session.close()
     tobs_list= [r[1] for r in data_tobs[:]]
     return jsonify(tobs_list)    
+
+@app.route("/api/v1.0/<start>")
+def start(startdate):
+    session = Session(engine)
+
+    results=session.query(func.min(Measurement.tobs), func.max(Measurement.tobs),func.avg(Measurement.tobs)).filter(func.strftime("%Y-%m-%d", Measurement.date) > startdate).all()
+
+    session.close()
+
+    return jsonify(results) 
+
+@app.route("/api/v1.0/<start>/<end>")
+def end(enddate):
+    session = Session(engine)
+
+    results=session.query(func.min(Measurement.tobs), func.max(Measurement.tobs),func.avg(Measurement.tobs)).filter(func.strftime("%Y-%m-%D", Measurement.date) > startdate).filter(func.strftime("%Y-%m-%d", Measurement.date) < enddate)\
+    .group_by(Measurement.date).all()
+
+    session.close()
+
+    return jsonify(results) 
 
 if __name__ == '__main__':
     app.run(debug=True)
